@@ -7,49 +7,78 @@ var Spotify = require("node-spotify-api");
 var spotify = new Spotify(keys.spotify);
 var twitter = new Twitter(keys.twitter);
 
-var input = process.argv;
+var nodeArgs = process.argv;
 var movie = ""
 var song = ""
 
 // need to use the random text file  
 // need to update formatting on results
 // need to do what it says
+//need to find artist query param
 
-
-
-if(input[2] === "my-tweets") {
-  twitter.get('statuses/user_timeline', {screen_name: 'CBS'},function(error, tweets, response) {
-    if(error) throw error
-    for(var i =0;i < tweets.length;i++) {
-    console.log(tweets[i].created_at + " " + tweets[i].text);
+if (nodeArgs[2] === "my-tweets") {
+  twitter.get('statuses/user_timeline', {
+    screen_name: 'CBS'
+  }, function (error, tweets, response) {
+    if (error) throw error
+    for (var i = 0; i < tweets.length; i++) {
+      console.log(tweets[i].created_at + " " + tweets[i].text);
     }
   });
-} else if (input[2] === "spotify-this-song") {
-  if (!input[3]) {
+} else if (nodeArgs[2] === "spotify-this-song") {
+  if (!nodeArgs[3]) {
     spotify
-    .search({ type: 'track', query: 'I Want it That Way', limit: 5 })
-  .then(function(response) {
-    console.log(JSON.stringify(response));
-  })
-  .catch(function(err) {
-    console.log(err);
-  });
+      .search({
+        type: 'track',
+        artist: 'Ace of Base',
+        query: 'The Sign',
+        limit: 1
+      })
+      .then(function (response) {
+        var count = 0
+
+        // console.log(response.tracks)
+        if (count < 5) {
+          console.log("Artists: " + response.tracks.items[count].artists[count].name)
+          console.log("Song Name: " + response.tracks.items[count].name)
+          console.log("Preview: " + response.tracks.items[count].preview_url)
+          console.log("Album: " + response.tracks.items[count].album.name)
+          count++
+        };
+
+      })
+      .catch(function (err) {
+        console.log(err);
+      });
 
   } else {
-  for(var i =3;i < input.length;i++) {
-    song += input[i] + "+";
+    for (var i = 3; i < nodeArgs.length; i++) {
+      song += nodeArgs[i] + "+";
     }
-spotify
-  .search({ type: 'track', query: song, limit: 5 })
-  .then(function(response) {
-    console.log(JSON.stringify(response));
-  })
-  .catch(function(err) {
-    console.log(err);
-  });
-};
-} else if (input[2] === "movie-this") {
-  if (!input[3]) {
+    spotify
+      .search({
+        type: 'track',
+        query: song,
+        limit: 1
+      })
+      .then(function (response) {
+        var count = 0
+
+        console.log(response.tracks)
+        if (count < 5) {
+          console.log("Artists: " + response.tracks.items[count].artists[count].name)
+          console.log("Song Name: " + response.tracks.items[count].name)
+          console.log("Preview: " + response.tracks.items[count].preview_url)
+          console.log("Album: " + response.tracks.items[count].album.name)
+          count++
+        };
+      })
+      .catch(function (err) {
+        console.log(err);
+      });
+  };
+} else if (nodeArgs[2] === "movie-this") {
+  if (!nodeArgs[3]) {
     request("http://www.omdbapi.com/?t=Mr+Nobody&y=&plot=short&apikey=trilogy", function (error, response, body) {
 
       if (!error && response.statusCode === 200) {
@@ -67,8 +96,8 @@ spotify
     });
 
   } else {
-    for(var i =3;i < input.length;i++) {
-    movie += input[i] + "+";
+    for (var i = 3; i < nodeArgs.length; i++) {
+      movie += nodeArgs[i] + "+";
     }
     request(`http://www.omdbapi.com/?t=${movie}&y=&plot=short&apikey=trilogy`, function (error, response, body) {
 
@@ -84,7 +113,22 @@ spotify
           Actors in the movie: ${JSON.parse(body).Actors}`);
       };
     });
-};
-} else if (input[2] === "do-what-it-says") {
+  };
+} else if (nodeArgs[2] === "do-what-it-says") {
+
+  if (!nodeArgs[3]) {
+    spotify
+      .search({
+        type: 'track',
+        query: 'I Want it That Way',
+        limit: 5
+      })
+      .then(function (response) {
+        console.log(JSON.stringify(response));
+      })
+      .catch(function (err) {
+        console.log(err);
+      });
+  }
 
 };
