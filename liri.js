@@ -3,18 +3,15 @@ var keys = require("./keys.js")
 var request = require("request");
 var Twitter = require("twitter");
 var Spotify = require("node-spotify-api");
+var fs = require("fs");
+
 
 var spotify = new Spotify(keys.spotify);
 var twitter = new Twitter(keys.twitter);
 
 var nodeArgs = process.argv;
-var movie = ""
-var song = ""
-
-// need to use the random text file  
-// need to update formatting on results
-// need to do what it says
-//need to find artist query param
+var movie = "";
+var song = "";
 
 if (nodeArgs[2] === "my-tweets") {
   twitter.get('statuses/user_timeline', {
@@ -30,14 +27,11 @@ if (nodeArgs[2] === "my-tweets") {
     spotify
       .search({
         type: 'track',
-        artist: 'Ace of Base',
-        query: 'The Sign',
+        query: "artist:Ace+of+Base%20track:The+Sign",
         limit: 1
-      })
+      })  
       .then(function (response) {
         var count = 0
-
-        // console.log(response.tracks)
         if (count < 5) {
           console.log("Artists: " + response.tracks.items[count].artists[count].name)
           console.log("Song Name: " + response.tracks.items[count].name)
@@ -45,7 +39,6 @@ if (nodeArgs[2] === "my-tweets") {
           console.log("Album: " + response.tracks.items[count].album.name)
           count++
         };
-
       })
       .catch(function (err) {
         console.log(err);
@@ -63,8 +56,6 @@ if (nodeArgs[2] === "my-tweets") {
       })
       .then(function (response) {
         var count = 0
-
-        console.log(response.tracks)
         if (count < 5) {
           console.log("Artists: " + response.tracks.items[count].artists[count].name)
           console.log("Song Name: " + response.tracks.items[count].name)
@@ -79,12 +70,13 @@ if (nodeArgs[2] === "my-tweets") {
   };
 } else if (nodeArgs[2] === "movie-this") {
   if (!nodeArgs[3]) {
-    request("http://www.omdbapi.com/?t=Mr+Nobody&y=&plot=short&apikey=trilogy", function (error, response, body) {
+    request(`http://www.omdbapi.com/?t=Mr+Nobody&y=&plot=short&apikey=${keys.omdb.id}`, function (error, response, body) {
 
       if (!error && response.statusCode === 200) {
 
         console.log(
-          `Title of the movie: ${JSON.parse(body).Title}
+          `
+          Title of the movie: ${JSON.parse(body).Title}
           Year the movie came out: ${JSON.parse(body).Year}
           IMDB rating is: ${JSON.parse(body).imdbRating}
           Rotten Tomatoes Rating: ${JSON.parse(body).Ratings[1].Value}
@@ -99,11 +91,12 @@ if (nodeArgs[2] === "my-tweets") {
     for (var i = 3; i < nodeArgs.length; i++) {
       movie += nodeArgs[i] + "+";
     }
-    request(`http://www.omdbapi.com/?t=${movie}&y=&plot=short&apikey=trilogy`, function (error, response, body) {
+    request(`http://www.omdbapi.com/?t=${movie}&y=&plot=short&apikey=${keys.omdb.id}`, function (error, response, body) {
 
       if (!error && response.statusCode === 200) {
         console.log(
-          `Title of the movie: ${JSON.parse(body).Title}
+          `
+          Title of the movie: ${JSON.parse(body).Title}
           Year the movie came out: ${JSON.parse(body).Year}
           IMDB rating is: ${JSON.parse(body).imdbRating}
           Rotten Tomatoes Rating: ${JSON.parse(body).Ratings[1].Value}
@@ -116,19 +109,40 @@ if (nodeArgs[2] === "my-tweets") {
   };
 } else if (nodeArgs[2] === "do-what-it-says") {
 
-  if (!nodeArgs[3]) {
-    spotify
-      .search({
-        type: 'track',
-        query: 'I Want it That Way',
-        limit: 5
-      })
-      .then(function (response) {
-        console.log(JSON.stringify(response));
-      })
-      .catch(function (err) {
-        console.log(err);
-      });
-  }
+  fs.readFile("random.txt", "utf8", function(error, data) {
 
+    // If the code experiences any errors it will log the error to the console.
+    if (error) {
+      return console.log(error);
+    }
+  
+    // We will then print the contents of data
+    console.log(data + "this is the data for text file");
+
+    var doWhat = data.split(",")
+    console.log(doWhat[1])
+  
+    spotify
+    .search({
+      type: 'track',
+      query: doWhat[1],
+      limit: 1
+    })
+    .then(function (response) {
+      var count = 0
+
+      // console.log(response.tracks)
+      if (count < 5) {
+        console.log("Artists: " + response.tracks.items[count].artists[count].name)
+        console.log("Song Name: " + response.tracks.items[count].name)
+        console.log("Preview: " + response.tracks.items[count].preview_url)
+        console.log("Album: " + response.tracks.items[count].album.name)
+        count++
+      };
+    })
+    .catch(function (err) {
+      console.log(err);
+    });
+  });
 };
+
